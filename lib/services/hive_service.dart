@@ -1,9 +1,11 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
+import '../models/patient.dart';
+
 /// Central service for Hive initialization and box access.
 ///
 /// Keeps architecture clean and simple (similar to Fikra POS):
-/// - Single responsibility: init Hive + expose the `settings` box.
+/// - Single responsibility: init Hive + expose boxes.
 /// - Static access so it can be used anywhere without DI complexity.
 /// - Must be initialized before `runApp()`.
 ///
@@ -16,24 +18,40 @@ class HiveService {
   HiveService._();
 
   static const String settingsBoxName = 'settings';
+  static const String patientsBoxName = 'patients';
 
   static late Box _settingsBox;
+  static late Box<Patient> _patientsBox;
 
   /// Direct access to the opened settings box.
   static Box get settingsBox => _settingsBox;
 
-  /// Whether Hive has been initialized and the settings box is open.
-  static bool get isInitialized => Hive.isBoxOpen(settingsBoxName);
+  /// Direct access to the opened patients box.
+  static Box<Patient> get patientsBox => _patientsBox;
 
-  /// Initialize Hive with `Hive.initFlutter()` and open the `settings` box.
+  /// Whether Hive has been initialized and required boxes are open.
+  static bool get isInitialized =>
+      Hive.isBoxOpen(settingsBoxName) && Hive.isBoxOpen(patientsBoxName);
+
+  /// Initialize Hive with `Hive.initFlutter()` and open all boxes.
   /// Call once in `main()` before `runApp()`.
   static Future<void> init() async {
     await Hive.initFlutter();
+
+    // Register adapters once (safe to call multiple times check)
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(PatientAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(GenderAdapter());
+    }
+
     _settingsBox = await Hive.openBox(settingsBoxName);
+    _patientsBox = await Hive.openBox<Patient>(patientsBoxName);
   }
 
   // ---------------------------------------------------------------------------
-  // Convenience helpers - keeps call sites clean without adding extra layers.
+  // Convenience helpers for settings - keeps call sites clean without extra layers.
   // ---------------------------------------------------------------------------
 
   static T? get<T>(String key, {T? defaultValue}) {
