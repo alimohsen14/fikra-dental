@@ -3,14 +3,17 @@ import 'package:flutter/foundation.dart';
 import '../models/account.dart';
 import '../services/hive_service.dart';
 
-/// Provider for managing [Account] settings with Hive CE.
+/// Provider for managing [Account] authentication and settings with Hive CE.
 ///
 /// Uses [HiveService.accountBox] as the single source of truth.
 /// No Repository layer – direct Box access as per spec.
 class AccountProvider extends ChangeNotifier {
   static const String _accountKey = 'current_account';
+  static const String defaultUsername = 'fikra';
+  static const String defaultPassword = 'fikra12345';
 
   Account? _account;
+  bool _isAuthenticated = false;
 
   /// Current account instance.
   Account? get account => _account;
@@ -18,23 +21,48 @@ class AccountProvider extends ChangeNotifier {
   /// Current username.
   String get username => _account?.username ?? '';
 
+  /// Whether current session is authenticated.
+  bool get isAuthenticated => _isAuthenticated;
+
   /// Load account from [HiveService.accountBox].
-  /// If no account exists yet, initializes a default account.
+  /// Always resets to the current default credentials, overwriting any stale
+  /// previously stored account (e.g. from an old install).
   Future<void> loadAccount() async {
     final box = HiveService.accountBox;
-    _account = box.get(_accountKey);
+    _account = Account(
+      username: defaultUsername,
+      password: defaultPassword,
+    );
+    await box.put(_accountKey, _account!);
+    // Do NOT call notifyListeners here – this is called during initState.
+    // Callers that need a rebuild should use WidgetsBinding.addPostFrameCallback.
+  }
+
+  /// Login with [username] and [password].
+  /// Returns true if credentials match the stored account.
+  bool login(String inputUsername, String inputPassword) {
     if (_account == null) {
-      if (box.isNotEmpty) {
-        _account = box.values.first;
+      final box = HiveService.accountBox;
+      final stored = box.get(_accountKey) ??
+          (box.isNotEmpty ? box.values.first : null);
+      if (stored != null) {
+        _account = stored;
       } else {
         _account = Account(
-          username: 'admin',
-          password: 'password',
+          username: defaultUsername,
+          password: defaultPassword,
         );
-        await box.put(_accountKey, _account!);
+        box.put(_accountKey, _account!);
       }
     }
+
+    final isValid = _account != null &&
+        _account!.username.trim() == inputUsername.trim() &&
+        _account!.password == inputPassword;
+
+    _isAuthenticated = isValid;
     notifyListeners();
+    return isValid;
   }
 
   /// Change account username and persist to Hive.
@@ -42,7 +70,7 @@ class AccountProvider extends ChangeNotifier {
     if (_account != null) {
       _account!.username = newUsername;
     } else {
-      _account = Account(username: newUsername, password: '');
+      _account = Account(username: newUsername, password: defaultPassword);
     }
     await HiveService.accountBox.put(_accountKey, _account!);
     notifyListeners();
@@ -55,7 +83,7 @@ class AccountProvider extends ChangeNotifier {
     if (_account != null) {
       _account!.password = newPassword;
     } else {
-      _account = Account(username: '', password: newPassword);
+      _account = Account(username: defaultUsername, password: newPassword);
     }
     await HiveService.accountBox.put(_accountKey, _account!);
     notifyListeners();

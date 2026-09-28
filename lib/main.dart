@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/account_provider.dart';
 import 'providers/doctor_provider.dart';
 import 'providers/patient_provider.dart';
-import 'screens/patients_screen.dart';
+import 'screens/login_screen.dart';
 import 'services/hive_service.dart';
 
 Future<void> main() async {
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const PatientsScreen(),
+      home: const LoginScreen(),
     );
   }
 }
