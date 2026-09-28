@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../account_screen.dart';
+import '../patients_screen.dart';
+
 class Sidebar extends StatelessWidget {
-  const Sidebar({super.key});
+  final String activeRoute;
+
+  const Sidebar({
+    super.key,
+    this.activeRoute = 'patients',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +129,16 @@ class Sidebar extends StatelessWidget {
                 _sidebarItem(
                   icon: Icons.groups_rounded,
                   title: 'سجل المرضى',
-                  active: true,
+                  active: activeRoute == 'patients',
+                  onTap: () {
+                    if (activeRoute != 'patients') {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const PatientsScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.calendar_month_rounded,
@@ -147,9 +164,18 @@ class Sidebar extends StatelessWidget {
             child: Column(
               children: [
                 _sidebarItem(
-                  icon: Icons.settings_outlined,
-                  title: 'إعدادات النظام',
-                  active: false,
+                  icon: Icons.manage_accounts_outlined,
+                  title: 'الحساب',
+                  active: activeRoute == 'account',
+                  onTap: () {
+                    if (activeRoute != 'account') {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const AccountScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
 
                 const SizedBox(height: 4),
@@ -207,13 +233,11 @@ class Sidebar extends StatelessWidget {
     required IconData icon,
     required String title,
     required bool active,
+    VoidCallback? onTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: active
-            ? const Color(0xFF0066FF)
-            : Colors.transparent,
         borderRadius: BorderRadius.circular(9),
         boxShadow: active
             ? [
@@ -225,29 +249,35 @@ class Sidebar extends StatelessWidget {
               ]
             : null,
       ),
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          icon,
-          size: 21,
-          color: active
-              ? Colors.white
-              : const Color(0xFF424656),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+      child: Material(
+        color: active
+            ? const Color(0xFF0066FF)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(9),
+        child: ListTile(
+          dense: true,
+          leading: Icon(
+            icon,
+            size: 21,
             color: active
                 ? Colors.white
                 : const Color(0xFF424656),
           ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: active
+                  ? Colors.white
+                  : const Color(0xFF424656),
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(9),
+          ),
+          onTap: onTap,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(9),
-        ),
-        onTap: () {},
       ),
     );
   }
