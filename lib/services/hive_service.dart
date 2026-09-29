@@ -1,6 +1,7 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../models/account.dart';
+import '../models/appointment.dart';
 import '../models/doctor.dart';
 import '../models/patient.dart';
 
@@ -23,11 +24,13 @@ class HiveService {
   static const String patientsBoxName = 'patients';
   static const String doctorsBoxName = 'doctors';
   static const String accountBoxName = 'account';
+  static const String appointmentsBoxName = 'appointments';
 
   static late Box _settingsBox;
   static late Box<Patient> _patientsBox;
   static late Box<Doctor> _doctorsBox;
   static late Box<Account> _accountBox;
+  static late Box<Appointment> _appointmentsBox;
 
   /// Direct access to the opened settings box.
   static Box get settingsBox => _settingsBox;
@@ -41,12 +44,16 @@ class HiveService {
   /// Direct access to the opened account box.
   static Box<Account> get accountBox => _accountBox;
 
+  /// Direct access to the opened appointments box.
+  static Box<Appointment> get appointmentsBox => _appointmentsBox;
+
   /// Whether Hive has been initialized and required boxes are open.
   static bool get isInitialized =>
       Hive.isBoxOpen(settingsBoxName) &&
       Hive.isBoxOpen(patientsBoxName) &&
       Hive.isBoxOpen(doctorsBoxName) &&
-      Hive.isBoxOpen(accountBoxName);
+      Hive.isBoxOpen(accountBoxName) &&
+      Hive.isBoxOpen(appointmentsBoxName);
 
   /// Initialize Hive with `Hive.initFlutter()` and open all boxes.
   /// Call once in `main()` before `runApp()`.
@@ -72,11 +79,18 @@ class HiveService {
     if (!Hive.isAdapterRegistered(5)) {
       Hive.registerAdapter(WeekDayAdapter());
     }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter(AppointmentStatusAdapter());
+    }
+    if (!Hive.isAdapterRegistered(7)) {
+      Hive.registerAdapter(AppointmentAdapter());
+    }
 
     _settingsBox = await Hive.openBox(settingsBoxName);
     _patientsBox = await Hive.openBox<Patient>(patientsBoxName);
     _doctorsBox = await Hive.openBox<Doctor>(doctorsBoxName);
     _accountBox = await Hive.openBox<Account>(accountBoxName);
+    _appointmentsBox = await Hive.openBox<Appointment>(appointmentsBoxName);
   }
 
   // ---------------------------------------------------------------------------
