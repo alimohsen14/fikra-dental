@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../account_screen.dart';
+import '../appointments_screen.dart';
 import '../patients_screen.dart';
 
 class Sidebar extends StatelessWidget {
@@ -143,7 +144,16 @@ class Sidebar extends StatelessWidget {
                 _sidebarItem(
                   icon: Icons.calendar_month_rounded,
                   title: 'المواعيد والتقويم',
-                  active: false,
+                  active: activeRoute == 'appointments',
+                  onTap: () {
+                    if (activeRoute != 'appointments') {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const AppointmentsScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.medical_services_outlined,

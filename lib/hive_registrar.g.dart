@@ -4,12 +4,15 @@
 
 import 'package:hive_ce/hive_ce.dart';
 import 'package:fikra_dental/models/account.dart';
+import 'package:fikra_dental/models/appointment.dart';
 import 'package:fikra_dental/models/doctor.dart';
 import 'package:fikra_dental/models/patient.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(AccountAdapter());
+    registerAdapter(AppointmentAdapter());
+    registerAdapter(AppointmentStatusAdapter());
     registerAdapter(DoctorAdapter());
     registerAdapter(DoctorScheduleAdapter());
     registerAdapter(GenderAdapter());
@@ -21,6 +24,8 @@ extension HiveRegistrar on HiveInterface {
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(AccountAdapter());
+    registerAdapter(AppointmentAdapter());
+    registerAdapter(AppointmentStatusAdapter());
     registerAdapter(DoctorAdapter());
     registerAdapter(DoctorScheduleAdapter());
     registerAdapter(GenderAdapter());
