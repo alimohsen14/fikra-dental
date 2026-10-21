@@ -7,6 +7,9 @@ import 'package:fikra_dental/models/account.dart';
 import 'package:fikra_dental/models/appointment.dart';
 import 'package:fikra_dental/models/doctor.dart';
 import 'package:fikra_dental/models/patient.dart';
+import 'package:fikra_dental/models/payment.dart';
+import 'package:fikra_dental/models/treatment.dart';
+import 'package:fikra_dental/models/treatment_session.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
@@ -17,6 +20,12 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(DoctorScheduleAdapter());
     registerAdapter(GenderAdapter());
     registerAdapter(PatientAdapter());
+    registerAdapter(PaymentAdapter());
+    registerAdapter(PaymentMethodAdapter());
+    registerAdapter(SessionStatusAdapter());
+    registerAdapter(TreatmentAdapter());
+    registerAdapter(TreatmentSessionAdapter());
+    registerAdapter(TreatmentStatusAdapter());
     registerAdapter(WeekDayAdapter());
   }
 }
@@ -30,6 +39,12 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(DoctorScheduleAdapter());
     registerAdapter(GenderAdapter());
     registerAdapter(PatientAdapter());
+    registerAdapter(PaymentAdapter());
+    registerAdapter(PaymentMethodAdapter());
+    registerAdapter(SessionStatusAdapter());
+    registerAdapter(TreatmentAdapter());
+    registerAdapter(TreatmentSessionAdapter());
+    registerAdapter(TreatmentStatusAdapter());
     registerAdapter(WeekDayAdapter());
   }
 }

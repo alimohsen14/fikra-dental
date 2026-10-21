@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../account_screen.dart';
 import '../appointments_screen.dart';
 import '../patients_screen.dart';
+import '../treatment_payment_screen.dart';
+import '../treatments_teeth_screen.dart';
 
 class Sidebar extends StatelessWidget {
   final String activeRoute;
@@ -156,9 +158,32 @@ class Sidebar extends StatelessWidget {
                   },
                 ),
                 _sidebarItem(
+                  icon: Icons.payments_outlined,
+                  title: 'دفع العلاج',
+                  active: activeRoute == 'treatment_payment',
+                  onTap: () {
+                    if (activeRoute != 'treatment_payment') {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const TreatmentPaymentScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                _sidebarItem(
                   icon: Icons.medical_services_outlined,
                   title: 'العلاجات والأسنان',
-                  active: false,
+                  active: activeRoute == 'treatments_teeth',
+                  onTap: () {
+                    if (activeRoute != 'treatments_teeth') {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const TreatmentsTeethScreen(),
+                        ),
+                      );
+                    }
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.receipt_long_rounded,
