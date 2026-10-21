@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/patient.dart';
 import '../providers/patient_provider.dart';
 import 'components/sidebar.dart';
+import 'treatments_teeth_screen.dart';
 
 class PatientsScreen extends StatefulWidget {
   const PatientsScreen({super.key});
@@ -1047,9 +1048,17 @@ class _PatientsScreenState extends State<PatientsScreen> {
             children: [
               _tableActionButton(
                 icon: Icons.medical_services_outlined,
-                tooltip: 'عرض الملف السريري',
+                tooltip: 'عرض الملف السريري وخطة العلاج',
                 color: const Color(0xFF0050CB),
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TreatmentsTeethScreen(
+                        initialPatientId: patient.id,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 5),
               _tableActionButton(

@@ -1000,19 +1000,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           children: [
             Expanded(
               child: _smallActionButton(
-                title: 'إكمال الجلسة',
-                color: const Color(0xFF006688),
-                onPressed: () async {
-                  await provider.completeAppointment(
-                    appointment.id,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: _smallActionButton(
-                title: 'إلغاء',
+                title: 'إلغاء الموعد',
                 color: const Color(0xFFBA1A1A),
                 background: const Color(0xFFFFDAD6),
                 onPressed: () async {
@@ -1368,13 +1356,15 @@ class _BookingModalState extends State<_BookingModal> {
     final provider =
         context.read<AppointmentProvider>();
 
+    final now = DateTime.now();
+
     return provider
         .getByDoctor(
           _selectedDoctor!.id,
           date: _selectedDate,
         )
         .where(
-          (appointment) => appointment.blocksSlot,
+          (appointment) => appointment.occupiesSlotAt(now),
         )
         .toList();
   }
@@ -1403,31 +1393,41 @@ class _BookingModalState extends State<_BookingModal> {
       return [];
     }
 
-    final appointments = _doctorAppointments();
+    // Busy windows sorted by start time; durations are dynamic per appointment.
+    final appointments = _doctorAppointments()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
+    final now = DateTime.now();
     final slots = <DateTime>[];
 
-    for (
-      int minutes = startMinutes;
-      minutes + _duration <= endMinutes;
-      minutes += _duration
-    ) {
-      final slot = _dateWithMinutes(
-        _selectedDate,
-        minutes,
+    // Walk a cursor across the working window. Whenever the proposed slot would
+    // overlap an existing appointment, jump the cursor to that appointment's
+    // actual end time instead of stepping by a fixed amount.
+    var cursor = startMinutes;
+    while (cursor + _duration <= endMinutes) {
+      final slot = _dateWithMinutes(_selectedDate, cursor);
+
+      final conflict = appointments.where(
+        (appointment) => _overlaps(slot, _duration, appointment),
       );
 
-      final blocked = appointments.any(
-        (appointment) => _overlaps(
-          slot,
-          _duration,
-          appointment,
-        ),
-      );
+      if (conflict.isNotEmpty) {
+        // Jump past the latest conflicting appointment's end time.
+        final jumpTo = conflict
+            .map((a) => a.dateTime.hour * 60 +
+                a.dateTime.minute +
+                a.duration)
+            .reduce((a, b) => a > b ? a : b);
+        cursor = jumpTo > cursor ? jumpTo : cursor + _duration;
+        continue;
+      }
 
-      if (!blocked) {
+      // Block past times (covers past dates and earlier times today).
+      if (slot.isAfter(now)) {
         slots.add(slot);
       }
+
+      cursor += _duration;
     }
 
     return slots;
@@ -1464,6 +1464,40 @@ class _BookingModalState extends State<_BookingModal> {
     final appointmentProvider =
         context.read<AppointmentProvider>();
 
+    // Block past dates and, for today, past times.
+    if (!_selectedSlot!.isAfter(DateTime.now())) {
+      _showError(
+        'لا يمكن حجز موعد في وقت مضى. اختر وقتاً في المستقبل.',
+      );
+      return;
+    }
+
+    // Allow only times within the doctor's working hours.
+    final schedule = _getScheduleForDate(
+      _selectedDoctor!,
+      _selectedDate,
+    );
+
+    if (schedule == null) {
+      _showError(
+        'الطبيب غير متاح في هذا اليوم. اختر يوماً آخر.',
+      );
+      return;
+    }
+
+    final slotMinutes =
+        _selectedSlot!.hour * 60 + _selectedSlot!.minute;
+    final startMinutes = _timeToMinutes(schedule.startTime);
+    final endMinutes = _timeToMinutes(schedule.endTime);
+
+    if (slotMinutes < startMinutes ||
+        slotMinutes + _duration > endMinutes) {
+      _showError(
+        'الوقت المحدد خارج أوقات عمل الطبيب.',
+      );
+      return;
+    }
+
     final alreadyBooked =
         appointmentProvider
             .getByDoctor(
@@ -1472,7 +1506,7 @@ class _BookingModalState extends State<_BookingModal> {
             )
             .any(
               (appointment) =>
-                  appointment.blocksSlot &&
+                  appointment.occupiesSlotAt(DateTime.now()) &&
                   _overlaps(
                     _selectedSlot!,
                     _duration,
@@ -1699,7 +1733,6 @@ class _BookingModalState extends State<_BookingModal> {
             const SizedBox(height: 8),
             Material(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
               shape: RoundedRectangleBorder(
                 side: const BorderSide(
                   color: Color(0xFFE2E7FF),

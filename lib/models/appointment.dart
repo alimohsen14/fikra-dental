@@ -87,6 +87,22 @@ class Appointment extends HiveObject {
   /// Whether this appointment currently occupies a time slot.
   bool get blocksSlot => status.blocksSlot;
 
+  /// Whether this appointment still occupies its time window relative to
+  /// [reference].
+  ///
+  /// - Pending/confirmed always occupy their slot.
+  /// - A completed appointment keeps its slot blocked only if it was carried
+  ///   out at or after its scheduled start ([reference] not before [dateTime]).
+  ///   If it was completed before its scheduled start, the future slot is
+  ///   freed immediately so another patient can book it.
+  bool occupiesSlotAt(DateTime reference) {
+    if (status.blocksSlot) return true;
+    if (status == AppointmentStatus.completed) {
+      return !reference.isBefore(dateTime);
+    }
+    return false;
+  }
+
   /// Returns true if [other] overlaps this appointment's time window,
   /// **and** both appointments block a slot (i.e. active appointments).
   bool overlapsWith(Appointment other) {

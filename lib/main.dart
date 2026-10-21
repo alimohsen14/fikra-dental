@@ -6,6 +6,8 @@ import 'providers/account_provider.dart';
 import 'providers/appointment_provider.dart';
 import 'providers/doctor_provider.dart';
 import 'providers/patient_provider.dart';
+import 'providers/payment_provider.dart';
+import 'providers/treatment_provider.dart';
 import 'screens/login_screen.dart';
 import 'services/hive_service.dart';
 
@@ -21,6 +23,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
         ChangeNotifierProvider(create: (_) => AccountProvider()),
         ChangeNotifierProvider(create: (_) => AppointmentProvider()),
+        ChangeNotifierProvider(create: (_) => TreatmentProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: const MyApp(),
     ),
